@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Pesif IA - Multiperfil</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,49 +11,80 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; overflow-x: hidden; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            margin: 0; 
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
         .gradient-bg { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
         .glass-card { background: white; border: 1px solid #e2e8f0; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        input, select, textarea { font-size: 16px !important; }
+
         .hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
         .imc-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; font-weight: 800; text-transform: uppercase; display: inline-block; margin-top: 4px; }
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        #profile-dropdown {
+            z-index: 10001 !important;
+            filter: drop-shadow(0 20px 25px rgb(0 0 0 / 0.15));
+        }
+        
+        .profile-item { min-height: 56px; user-select: none; }
+
+        /* Loader para IA */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-3 md:p-8">
 
-    <div id="main-content" class="max-w-5xl mx-auto py-4 fade-in">
+    <div id="main-content" class="max-w-5xl mx-auto py-2 md:py-4 fade-in">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-            <div class="flex items-center gap-4">
-                <div class="h-12 w-12 gradient-bg rounded-xl flex items-center justify-center shadow-lg">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-8">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="h-12 w-12 gradient-bg rounded-xl flex items-center justify-center shadow-lg shrink-0">
                     <i data-lucide="activity" class="text-white w-7 h-7"></i>
                 </div>
-                <div>
-                    <h1 class="text-2xl font-black text-slate-800 tracking-tight">Pesif <span class="text-indigo-600">IA</span></h1>
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleProfiles()" class="flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-700 transition-colors">
-                            <span id="current-user-display">Cargando...</span>
-                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                <div class="overflow-visible w-full relative">
+                    <h1 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Pesif <span class="text-indigo-600">IA</span></h1>
+                    
+                    <div class="relative inline-block">
+                        <button id="profile-trigger" class="flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-700 transition-colors py-1">
+                            <span id="current-user-display" class="truncate max-w-[150px]">Cargando...</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 shrink-0"></i>
                         </button>
-                        <div id="profile-dropdown" class="hidden absolute left-0 mt-2 w-64 bg-white border rounded-2xl shadow-xl z-50 p-2 fade-in">
-                            <div id="profile-list" class="max-h-60 overflow-y-auto custom-scroll space-y-1 mb-2"></div>
-                            <div class="border-t border-slate-100 pt-2 flex flex-col gap-1">
-                                <button onclick="openModal('new-user-modal'); toggleProfiles();" class="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors">
-                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Nuevo Perfil
+                        
+                        <div id="profile-dropdown" class="hidden absolute left-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl p-2 fade-in shadow-2xl">
+                            <div id="profile-list" class="max-h-64 overflow-y-auto custom-scroll space-y-1 mb-2"></div>
+                            
+                            <div class="border-t border-slate-100 pt-2 space-y-1">
+                                <button onclick="openModal('new-user-modal'); hideDropdown();" class="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Crear Perfil
                                 </button>
-                                <div class="flex gap-1 px-1">
-                                    <button onclick="exportData()" class="flex-1 flex items-center justify-center gap-1 py-2 text-[10px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-lg">
-                                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar
+                                
+                                <div class="grid grid-cols-2 gap-1 px-1">
+                                    <button onclick="exportData()" class="flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100">
+                                        <i data-lucide="download" class="w-3 h-3"></i> Exportar
                                     </button>
-                                    <button onclick="document.getElementById('import-file').click()" class="flex-1 flex items-center justify-center gap-1 py-2 text-[10px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-lg">
-                                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar
-                                    </button>
-                                    <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+                                    <label class="flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 cursor-pointer">
+                                        <i data-lucide="upload" class="w-3 h-3"></i> Importar
+                                        <input type="file" class="hidden" accept=".json" onchange="importData(event)">
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -61,50 +92,74 @@
                 </div>
             </div>
             
-            <div class="flex gap-2 w-full md:w-auto">
-                <button id="btn-analyze" disabled onclick="analyzeProgress()" class="flex-1 md:flex-none bg-white border border-purple-200 text-purple-700 px-4 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-purple-50 transition-all">
-                    <i data-lucide="sparkles" class="w-4 h-4"></i> Analizar con IA
-                </button>
-                <button id="btn-new-weight" disabled onclick="openModal('weight-modal')" class="flex-1 md:flex-none gradient-bg text-white px-6 py-2.5 rounded-xl font-bold shadow-md">Nuevo Peso</button>
+            <div id="header-actions" class="hidden flex gap-2 w-full md:w-auto">
+                <button onclick="openModal('weight-modal')" class="h-12 flex-1 md:flex-none gradient-bg text-white px-6 rounded-xl font-bold shadow-md active:scale-95 transition-transform">Nuevo Pesaje</button>
             </div>
         </header>
 
         <!-- Dashboard -->
         <div id="dashboard" class="hidden">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
                 <div class="glass-card p-4 rounded-2xl">
                     <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Peso Actual</p>
-                    <h2 id="stat-current" class="text-2xl font-bold text-slate-800">--</h2>
+                    <h2 id="stat-current" class="text-xl md:text-2xl font-bold text-slate-800">--</h2>
                 </div>
                 <div class="glass-card p-4 rounded-2xl">
                     <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Estado IMC</p>
-                    <h2 id="stat-imc" class="text-2xl font-bold text-slate-800">--</h2>
+                    <h2 id="stat-imc" class="text-xl md:text-2xl font-bold text-slate-800">--</h2>
                     <div id="imc-label-container"></div>
                 </div>
                 <div class="glass-card p-4 rounded-2xl">
-                    <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Meta</p>
-                    <h2 id="stat-goal" class="text-2xl font-bold text-slate-800">--</h2>
+                    <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Peso Meta</p>
+                    <h2 id="stat-goal" class="text-xl md:text-2xl font-bold text-slate-800">--</h2>
                 </div>
                 <div class="glass-card p-4 rounded-2xl border-l-4 border-indigo-500">
-                    <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Progreso</p>
-                    <h2 id="stat-diff" class="text-lg font-bold text-slate-700">--</h2>
+                    <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Diferencia</p>
+                    <h2 id="stat-diff" class="text-base md:text-lg font-bold text-slate-700">--</h2>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-                <div class="lg:col-span-2 glass-card p-6 rounded-[2rem] min-h-[400px]">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-slate-800 text-sm">Evolución y Objetivo</h3>
-                        <div class="flex gap-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                             <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-indigo-500"></span> Real</span>
-                             <span class="flex items-center gap-1"><span class="w-3 h-0.5 border-t-2 border-dashed border-rose-400"></span> Meta</span>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="glass-card p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] min-h-[350px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-800 text-sm">Evolución y Objetivo</h3>
+                            <div class="flex gap-3 text-[9px] font-bold uppercase text-slate-400">
+                                 <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-indigo-500"></span> Peso</span>
+                                 <span id="chart-legend-goal" class="hidden flex items-center gap-1"><span class="w-3 h-0.5 border-t-2 border-dashed border-rose-400"></span> Meta</span>
+                            </div>
+                        </div>
+                        <div class="relative h-[250px] md:h-[300px]">
+                            <canvas id="weightChart"></canvas>
                         </div>
                     </div>
-                    <div class="relative h-[300px]">
-                        <canvas id="weightChart"></canvas>
+                    
+                    <!-- Botón Análisis IA -->
+                    <button id="ai-btn" onclick="generateAIAnalysis()" class="w-full p-4 bg-white border border-indigo-100 rounded-2xl flex items-center justify-between hover:bg-indigo-50 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg group-hover:scale-110 transition-transform">
+                                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-sm font-bold text-slate-800">Análisis con IA</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Obtén consejos basados en tu progreso</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-indigo-300"></i>
+                    </button>
+                    
+                    <!-- Contenedor del Análisis -->
+                    <div id="ai-result-container" class="hidden glass-card p-6 rounded-2xl border-indigo-200 bg-indigo-50/30">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-black text-indigo-600 text-xs uppercase tracking-widest">Informe Inteligente</h4>
+                            <button onclick="document.getElementById('ai-result-container').classList.add('hidden')" class="text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                        <div id="ai-content" class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap"></div>
+                        <div id="ai-sources" class="mt-4 pt-4 border-t border-indigo-100 space-y-2"></div>
                     </div>
                 </div>
-                <div class="glass-card p-6 rounded-[2rem] bg-slate-50 border-none flex flex-col justify-between">
+
+                <div class="glass-card p-6 rounded-[1.5rem] md:rounded-[2rem] bg-slate-50 border-none flex flex-col justify-between">
                     <div>
                         <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <i data-lucide="target" class="w-5 h-5 text-indigo-500"></i> Mi Objetivo
@@ -118,26 +173,26 @@
                                 <p id="goal-percent" class="text-right text-xs font-black text-indigo-600">0%</p>
                             </div>
                         </div>
-                        <div id="no-goal-msg" class="text-center py-4 text-slate-400 text-sm">Sin meta configurada</div>
+                        <div id="no-goal-msg" class="text-center py-4 text-slate-400 text-sm italic">Sin meta configurada</div>
                     </div>
                     <div class="space-y-3 mt-6">
-                        <button onclick="openModal('goal-modal')" class="w-full py-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 font-bold transition-all shadow-md">Configurar Meta</button>
-                        <button onclick="openModal('profile-modal')" class="w-full py-2 text-slate-400 text-xs hover:text-slate-600 font-medium">Editar Perfil</button>
+                        <button onclick="openModal('goal-modal')" class="w-full py-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 font-bold transition-all shadow-md active:scale-95">Configurar Meta</button>
                     </div>
                 </div>
             </div>
 
-            <div class="glass-card rounded-[2rem] overflow-hidden">
-                <div class="p-6 border-b bg-slate-50/50">
-                    <h3 class="font-bold text-slate-800">Historial</h3>
+            <!-- History -->
+            <div class="glass-card rounded-[1.5rem] overflow-hidden">
+                <div class="p-4 md:p-6 border-b bg-slate-50/50">
+                    <h3 class="font-bold text-slate-800">Historial de Pesajes</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase">Fecha</th>
-                                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase">Peso</th>
-                                <th class="px-6 py-4 text-right"></th>
+                                <th class="px-4 md:px-6 py-4 text-[10px] font-black text-slate-400 uppercase">Fecha</th>
+                                <th class="px-4 md:px-6 py-4 text-[10px] font-black text-slate-400 uppercase">Peso</th>
+                                <th class="px-4 md:px-6 py-4 text-right"></th>
                             </tr>
                         </thead>
                         <tbody id="history-body" class="divide-y divide-slate-100"></tbody>
@@ -147,37 +202,36 @@
         </div>
 
         <!-- Empty State -->
-        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
-            <div class="h-24 w-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                <i data-lucide="user-plus" class="w-12 h-12 text-slate-300"></i>
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center px-6">
+            <div class="h-20 w-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                <i data-lucide="user-plus" class="w-10 h-10 text-slate-300"></i>
             </div>
-            <h2 class="text-xl font-bold text-slate-800 mb-2">No hay perfiles activos</h2>
-            <p class="text-slate-500 max-w-xs mb-8">Crea un perfil o importa tus datos para comenzar.</p>
-            <button onclick="openModal('new-user-modal')" class="gradient-bg text-white px-8 py-3 rounded-2xl font-bold shadow-lg">Crear Perfil</button>
+            <h2 class="text-xl font-bold text-slate-800 mb-2">Comienza ahora</h2>
+            <button onclick="openModal('new-user-modal')" class="gradient-bg text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg">Crear Mi Primer Perfil</button>
         </div>
     </div>
 
     <!-- Modales -->
-    <div id="new-user-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl">
+    <div id="new-user-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[20000]">
+        <div class="bg-white rounded-[2rem] p-6 md:p-8 max-w-sm w-full shadow-2xl">
             <h2 class="text-2xl font-bold mb-6 text-slate-800">Nuevo Perfil</h2>
             <div class="space-y-4">
-                <input type="text" id="input-new-username" placeholder="Nombre" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
-                <input type="number" id="input-new-height" placeholder="Altura (cm)" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
-                <input type="number" id="input-new-weight" step="0.1" placeholder="Peso Inicial (kg)" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="text" id="input-new-username" placeholder="Tu nombre" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
+                <input type="number" id="input-new-height" inputmode="numeric" placeholder="Altura (cm)" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
+                <input type="number" id="input-new-weight" inputmode="decimal" step="0.1" placeholder="Peso inicial (kg)" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
             </div>
             <div class="flex gap-3 mt-8">
                 <button onclick="closeModal('new-user-modal')" class="flex-1 py-4 font-bold text-slate-400">Cancelar</button>
-                <button onclick="createUser()" class="flex-1 py-4 gradient-bg text-white rounded-2xl font-bold">Crear</button>
+                <button onclick="createUser()" class="flex-1 py-4 gradient-bg text-white rounded-2xl font-bold">Empezar</button>
             </div>
         </div>
     </div>
 
-    <div id="weight-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl">
-            <h2 class="text-2xl font-bold mb-6 text-slate-800">Nuevo Pesaje</h2>
+    <div id="weight-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[20000]">
+        <div class="bg-white rounded-[2rem] p-6 md:p-8 max-w-sm w-full shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 text-slate-800">Nuevo Registro</h2>
             <div class="space-y-4">
-                <input type="number" id="input-weight" step="0.1" placeholder="00.0 kg" class="w-full p-4 bg-slate-50 border-0 rounded-2xl text-2xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="number" id="input-weight" inputmode="decimal" step="0.1" placeholder="00.0 kg" class="w-full p-4 bg-slate-50 border-0 rounded-2xl text-2xl font-bold outline-none">
                 <input type="date" id="input-date" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
             </div>
             <div class="flex gap-3 mt-8">
@@ -187,57 +241,27 @@
         </div>
     </div>
 
-    <div id="goal-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl">
-            <h2 class="text-2xl font-bold mb-6 text-slate-800">Meta</h2>
+    <div id="goal-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[20000]">
+        <div class="bg-white rounded-[2rem] p-6 md:p-8 max-w-sm w-full shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 text-slate-800">Peso Objetivo</h2>
             <div class="space-y-4">
-                <input type="number" id="goal-weight" step="0.1" placeholder="Peso objetivo" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
+                <input type="number" id="goal-weight" inputmode="decimal" step="0.1" placeholder="Peso deseado (kg)" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
                 <input type="date" id="goal-date" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
             </div>
             <div class="flex gap-3 mt-8">
                 <button onclick="closeModal('goal-modal')" class="flex-1 py-4 font-bold text-slate-400">Cancelar</button>
-                <button onclick="saveGoal()" class="flex-1 py-4 gradient-bg text-white rounded-2xl font-bold">Fijar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="ai-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[110]">
-        <div class="bg-white rounded-[2.5rem] p-8 max-w-2xl w-full shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2"><i data-lucide="sparkles" class="text-purple-600"></i> Informe IA</h2>
-                <button onclick="closeModal('ai-modal')" class="p-2 hover:bg-slate-100 rounded-full"><i data-lucide="x"></i></button>
-            </div>
-            <div id="ai-content" class="text-slate-600 leading-relaxed space-y-4 text-sm md:text-base"></div>
-            <button onclick="closeModal('ai-modal')" class="w-full mt-8 py-4 gradient-bg text-white rounded-2xl font-bold">Cerrar Informe</button>
-        </div>
-    </div>
-
-    <div id="profile-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl">
-            <h2 class="text-2xl font-bold mb-6 text-slate-800">Perfil</h2>
-            <div class="space-y-4">
-                <input type="text" id="edit-username" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
-                <input type="number" id="edit-height" class="w-full p-4 bg-slate-50 border-0 rounded-2xl font-bold outline-none">
-            </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="closeModal('profile-modal')" class="flex-1 py-4 font-bold text-slate-400">Cerrar</button>
-                <button onclick="saveProfile()" class="flex-1 py-4 gradient-bg text-white rounded-2xl font-bold">Guardar</button>
+                <button onclick="saveGoal()" class="flex-1 py-4 gradient-bg text-white rounded-2xl font-bold">Fijar Meta</button>
             </div>
         </div>
     </div>
 
     <script>
-        const apiKey = ""; // La API key se inyecta automáticamente en el entorno
-        const STORAGE_KEY = 'pesif_v4_stable';
+        const STORAGE_KEY = 'pesif_v8_ai_integration';
+        const apiKey = ""; 
 
-        let state = {
-            users: {},
-            currentUserId: null
-        };
-
+        let state = { users: {}, currentUserId: null };
         let chart = null;
 
-        // --- Persistencia ---
         function persist() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             refreshUI();
@@ -247,13 +271,53 @@
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 state = JSON.parse(saved);
-                if (Object.keys(state.users).length > 0 && !state.currentUserId) {
+                if (Object.keys(state.users).length > 0 && (!state.currentUserId || !state.users[state.currentUserId])) {
                     state.currentUserId = Object.keys(state.users)[0];
                 }
             }
         }
 
-        // --- UI Core ---
+        // --- EXPORTAR / IMPORTAR ---
+        function exportData() {
+            const dataStr = JSON.stringify(state, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `pesif_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            hideDropdown();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.users) {
+                        // Combinamos para no perder lo actual si hay IDs distintos, 
+                        // o actualizamos si ya existen
+                        state.users = { ...state.users, ...imported.users };
+                        if (!state.currentUserId && imported.currentUserId) {
+                            state.currentUserId = imported.currentUserId;
+                        } else if (!state.currentUserId) {
+                            state.currentUserId = Object.keys(state.users)[0];
+                        }
+                        persist();
+                        alert("Datos importados correctamente");
+                    }
+                } catch (err) {
+                    alert("El archivo no es válido");
+                }
+                hideDropdown();
+            };
+            reader.readAsText(file);
+        }
+
         function refreshUI() {
             const user = state.users[state.currentUserId];
             const dropdown = document.getElementById('profile-list');
@@ -264,14 +328,21 @@
                 const u = state.users[id];
                 const active = state.currentUserId === id;
                 const div = document.createElement('div');
-                div.className = `flex justify-between items-center p-3 rounded-xl cursor-pointer ${active ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-slate-50'}`;
-                div.onclick = () => { state.currentUserId = id; persist(); toggleProfiles(); };
+                div.className = `profile-item flex justify-between items-center p-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-slate-50 border border-transparent'}`;
+                
+                div.onclick = (e) => {
+                    if (e.target.closest('.delete-btn')) return;
+                    selectUser(id);
+                };
+
                 div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg gradient-bg text-white flex items-center justify-center font-bold text-xs">${u.name.charAt(0)}</div>
-                        <span class="text-sm font-bold text-slate-700">${u.name}</span>
+                    <div class="flex items-center gap-3 flex-1 overflow-hidden pointer-events-none">
+                        <div class="w-9 h-9 rounded-lg gradient-bg text-white flex items-center justify-center font-bold text-sm shrink-0">${u.name.charAt(0)}</div>
+                        <span class="text-sm font-bold text-slate-700 truncate">${u.name}</span>
                     </div>
-                    <button onclick="event.stopPropagation(); deleteUser('${id}')" class="text-slate-300 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="deleteUser('${id}', event)" class="delete-btn text-slate-300 hover:text-red-500 p-2 ml-2 transition-colors relative z-10">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
                 `;
                 dropdown.appendChild(div);
             });
@@ -280,90 +351,220 @@
                 userDisplay.innerText = user.name;
                 document.getElementById('dashboard').classList.remove('hidden');
                 document.getElementById('empty-state').classList.add('hidden');
-                document.getElementById('btn-analyze').disabled = user.logs.length < 2;
-                document.getElementById('btn-new-weight').disabled = false;
-                
+                document.getElementById('header-actions').classList.remove('hidden'); 
                 updateStats(user);
                 updateTable(user);
                 updateChart(user);
             } else {
-                userDisplay.innerText = "Sin perfil";
+                userDisplay.innerText = "Seleccionar perfil";
                 document.getElementById('dashboard').classList.add('hidden');
                 document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('header-actions').classList.add('hidden'); 
             }
             lucide.createIcons();
         }
 
+        function selectUser(id) {
+            state.currentUserId = id;
+            hideDropdown();
+            persist();
+        }
+
+        // --- LÓGICA DE IA ---
+        async function generateAIAnalysis() {
+            const user = state.users[state.currentUserId];
+            if (!user || user.logs.length === 0) return;
+
+            const aiBtn = document.getElementById('ai-btn');
+            const resultContainer = document.getElementById('ai-result-container');
+            const aiContent = document.getElementById('ai-content');
+            const aiSources = document.getElementById('ai-sources');
+
+            aiBtn.disabled = true;
+            aiBtn.innerHTML = `<div class="flex items-center gap-3"><div class="loader"></div><span class="text-sm font-bold text-slate-500">Analizando...</span></div>`;
+            
+            const currentWeight = user.logs[user.logs.length - 1].weight;
+            const h_m = user.profile.height / 100;
+            const imc = (currentWeight / (h_m * h_m)).toFixed(1);
+            const goalText = user.goal ? `Meta: ${user.goal.weight} kg para ${user.goal.deadline}.` : "Sin meta definida.";
+            const historyText = user.logs.slice(-5).map(l => `${l.date}: ${l.weight}kg`).join(", ");
+
+            const prompt = `Soy Pesif IA. El usuario ${user.name} tiene: Peso actual ${currentWeight}kg, Altura ${user.profile.height}cm, IMC ${imc}. Historial: ${historyText}. ${goalText}. Da un análisis motivador y 3 consejos prácticos cortos.`;
+
+            try {
+                let retries = 0;
+                const maxRetries = 5;
+                let response;
+
+                while (retries < maxRetries) {
+                    try {
+                        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }],
+                                tools: [{ "google_search": {} }]
+                            })
+                        });
+                        if (response.ok) break;
+                    } catch (e) {}
+                    retries++;
+                    await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
+                }
+
+                if (!response?.ok) throw new Error("API Error");
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const attributions = result.candidates?.[0]?.groundingMetadata?.groundingAttributions || [];
+
+                resultContainer.classList.remove('hidden');
+                aiContent.innerText = text;
+
+                aiSources.innerHTML = attributions.length > 0 ? `<p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Fuentes:</p>` : '';
+                attributions.forEach(attr => {
+                    const link = document.createElement('a');
+                    link.href = attr.web?.uri;
+                    link.target = "_blank";
+                    link.className = "block text-[10px] text-indigo-500 hover:underline truncate";
+                    link.innerText = `• ${attr.web?.title || attr.web?.uri}`;
+                    aiSources.appendChild(link);
+                });
+
+            } catch (err) {
+                aiContent.innerText = "Error al conectar con la IA.";
+                resultContainer.classList.remove('hidden');
+            } finally {
+                aiBtn.disabled = false;
+                aiBtn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg group-hover:scale-110 transition-transform"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+                        <div class="text-left"><p class="text-sm font-bold text-slate-800">Análisis con IA</p><p class="text-[10px] text-slate-500 font-medium">Basado en tu progreso</p></div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-indigo-300"></i>`;
+                lucide.createIcons();
+            }
+        }
+
+        // --- UTILIDADES ---
+        document.getElementById('profile-trigger').onclick = (e) => {
+            e.stopPropagation();
+            const drop = document.getElementById('profile-dropdown');
+            drop.classList.toggle('hidden');
+        };
+
+        window.hideDropdown = () => document.getElementById('profile-dropdown').classList.add('hidden');
+        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+
+        window.createUser = () => {
+            const name = document.getElementById('input-new-username').value.trim();
+            const h = parseFloat(document.getElementById('input-new-height').value);
+            const w = parseFloat(document.getElementById('input-new-weight').value);
+            if (!name || isNaN(h) || isNaN(w)) return;
+            const id = 'u_' + Date.now();
+            state.users[id] = { name, profile: { height: h }, logs: [{ id: 'l_'+Date.now(), weight: w, date: new Date().toISOString().split('T')[0] }], goal: null };
+            state.currentUserId = id;
+            closeModal('new-user-modal');
+            persist();
+        };
+
+        window.saveWeight = () => {
+            const w = parseFloat(document.getElementById('input-weight').value);
+            const d = document.getElementById('input-date').value;
+            if (isNaN(w) || !d) return;
+            state.users[state.currentUserId].logs.push({ id: 'l_'+Date.now(), weight: w, date: d });
+            state.users[state.currentUserId].logs.sort((a,b) => new Date(a.date) - new Date(b.date));
+            closeModal('weight-modal');
+            persist();
+        };
+
+        window.saveGoal = () => {
+            const w = parseFloat(document.getElementById('goal-weight').value);
+            const d = document.getElementById('goal-date').value;
+            if (isNaN(w) || !d) return;
+            state.users[state.currentUserId].goal = { weight: w, deadline: d };
+            closeModal('goal-modal');
+            persist();
+        };
+
+        window.deleteUser = (id, e) => {
+            e.stopPropagation();
+            if (confirm("¿Eliminar este perfil?")) {
+                delete state.users[id];
+                if (state.currentUserId === id) state.currentUserId = Object.keys(state.users)[0] || null;
+                persist();
+            }
+        };
+
+        window.deleteLog = (id) => {
+            state.users[state.currentUserId].logs = state.users[state.currentUserId].logs.filter(l => l.id !== id);
+            persist();
+        };
+
         function updateStats(user) {
             const logs = user.logs;
-            if (logs.length === 0) return;
-
+            if (!logs || logs.length === 0) return;
             const current = logs[logs.length - 1].weight;
             document.getElementById('stat-current').innerText = `${current} kg`;
-
-            const imc = (current / ((user.profile.height / 100) ** 2)).toFixed(1);
+            const h_m = user.profile.height / 100;
+            const imc = (current / (h_m * h_m)).toFixed(1);
             document.getElementById('stat-imc').innerText = imc;
             const imcData = getIMCStatus(parseFloat(imc));
             document.getElementById('imc-label-container').innerHTML = `<span class="imc-badge ${imcData.class}">${imcData.text}</span>`;
-
             if (user.goal) {
                 document.getElementById('stat-goal').innerText = `${user.goal.weight} kg`;
                 const diff = (current - user.goal.weight).toFixed(1);
-                document.getElementById('stat-diff').innerText = `${Math.abs(diff)} kg ${diff > 0 ? 'faltan' : 'menos'}`;
-                
+                document.getElementById('stat-diff').innerText = `${diff > 0 ? '-' : '+'}${Math.abs(diff)} kg`;
                 document.getElementById('goal-info').classList.remove('hidden');
                 document.getElementById('no-goal-msg').classList.add('hidden');
-                
                 const start = logs[0].weight;
-                const progress = Math.min(100, Math.max(0, ((start - current) / (start - user.goal.weight)) * 100));
+                const totalDist = start - user.goal.weight;
+                const currentDist = start - current;
+                const progress = totalDist === 0 ? 0 : Math.min(100, Math.max(0, (currentDist / totalDist) * 100));
                 document.getElementById('goal-progress-bar').style.width = `${progress}%`;
                 document.getElementById('goal-percent').innerText = `${Math.round(progress)}%`;
-                
                 const days = Math.ceil((new Date(user.goal.deadline) - new Date()) / 86400000);
-                document.getElementById('goal-countdown').innerText = days > 0 ? `${days} días para meta` : "Plazo terminado";
+                document.getElementById('goal-countdown').innerText = days > 0 ? `${days} días` : "Plazo vencido";
+                document.getElementById('chart-legend-goal').classList.remove('hidden');
             } else {
                 document.getElementById('stat-goal').innerText = "--";
                 document.getElementById('stat-diff').innerText = "--";
                 document.getElementById('goal-info').classList.add('hidden');
                 document.getElementById('no-goal-msg').classList.remove('hidden');
+                document.getElementById('chart-legend-goal').classList.add('hidden');
             }
         }
 
         function updateChart(user) {
             const ctx = document.getElementById('weightChart').getContext('2d');
             if (chart) chart.destroy();
-
             const dataPoints = user.logs.map(l => ({ x: new Date(l.date), y: l.weight }));
             const datasets = [{
-                label: 'Peso Real',
+                label: 'Peso',
                 data: dataPoints,
                 borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                borderWidth: 3,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#6366f1',
                 fill: true,
-                tension: 0.4,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                borderWidth: 3
+                backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                tension: 0.3
             }];
-
-            if (user.goal && user.logs.length > 0) {
-                const firstDate = new Date(user.logs[0].date);
-                const lastDate = new Date(user.goal.deadline);
-                
+            if (user.goal) {
+                const dates = dataPoints.map(p => p.x);
+                const minDate = new Date(Math.min(...dates));
+                const maxDate = new Date(Math.max(...dates, new Date(user.goal.deadline)));
                 datasets.push({
-                    label: 'Objetivo',
-                    data: [
-                        { x: firstDate, y: user.goal.weight },
-                        { x: lastDate, y: user.goal.weight }
-                    ],
+                    label: 'Meta',
+                    data: [{ x: minDate, y: user.goal.weight }, { x: maxDate, y: user.goal.weight }],
                     borderColor: '#fb7185',
-                    borderDash: [5, 5],
                     borderWidth: 2,
+                    borderDash: [5, 5],
                     pointRadius: 0,
                     fill: false
                 });
             }
-
             chart = new Chart(ctx, {
                 type: 'line',
                 data: { datasets },
@@ -372,17 +573,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { 
-                            type: 'time', 
-                            time: { unit: 'day' }, 
-                            grid: { display: false },
-                            ticks: { font: { size: 10 } }
-                        },
-                        y: { 
-                            beginAtZero: false,
-                            grid: { color: '#f1f5f9' },
-                            ticks: { font: { size: 10 } }
-                        }
+                        x: { type: 'time', time: { unit: 'day' }, grid: { display: false } },
+                        y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => v + 'k' } }
                     }
                 }
             });
@@ -391,144 +583,13 @@
         function updateTable(user) {
             const body = document.getElementById('history-body');
             body.innerHTML = [...user.logs].reverse().map(l => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 text-xs font-medium text-slate-500">${new Date(l.date).toLocaleDateString()}</td>
-                    <td class="px-6 py-4 text-sm font-bold text-slate-700">${l.weight} kg</td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="deleteLog('${l.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+                <tr>
+                    <td class="px-4 py-4 text-xs font-medium text-slate-500">${new Date(l.date).toLocaleDateString()}</td>
+                    <td class="px-4 py-4 text-sm font-bold text-slate-700">${l.weight} kg</td>
+                    <td class="px-4 py-4 text-right"><button onclick="deleteLog('${l.id}')" class="text-slate-300 hover:text-red-500 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                </tr>`).join('');
             lucide.createIcons();
         }
-
-        // --- Acciones de Perfil ---
-        window.toggleProfiles = () => document.getElementById('profile-dropdown').classList.toggle('hidden');
-        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
-
-        window.createUser = () => {
-            const name = document.getElementById('input-new-username').value;
-            const height = parseFloat(document.getElementById('input-new-height').value);
-            const weight = parseFloat(document.getElementById('input-new-weight').value);
-            if (!name || !height || !weight) return;
-
-            const id = 'u_' + Date.now();
-            state.users[id] = {
-                name,
-                profile: { height },
-                logs: [{ id: 'l_'+Date.now(), weight, date: new Date().toISOString().split('T')[0] }],
-                goal: null
-            };
-            state.currentUserId = id;
-            closeModal('new-user-modal');
-            persist();
-        };
-
-        window.saveWeight = () => {
-            const weight = parseFloat(document.getElementById('input-weight').value);
-            const date = document.getElementById('input-date').value;
-            if (!weight || !date) return;
-            
-            state.users[state.currentUserId].logs.push({ id: 'l_'+Date.now(), weight, date });
-            state.users[state.currentUserId].logs.sort((a,b) => new Date(a.date) - new Date(b.date));
-            closeModal('weight-modal');
-            persist();
-        };
-
-        window.saveGoal = () => {
-            const weight = parseFloat(document.getElementById('goal-weight').value);
-            const date = document.getElementById('goal-date').value;
-            if (!weight || !date) return;
-            state.users[state.currentUserId].goal = { weight, deadline: date };
-            closeModal('goal-modal');
-            persist();
-        };
-
-        window.deleteLog = (id) => {
-            state.users[state.currentUserId].logs = state.users[state.currentUserId].logs.filter(l => l.id !== id);
-            persist();
-        };
-
-        window.deleteUser = (id) => {
-            if (confirm("¿Eliminar este perfil?")) {
-                delete state.users[id];
-                state.currentUserId = Object.keys(state.users)[0] || null;
-                persist();
-            }
-        };
-
-        // --- MOTOR DE IA ROBUSTO CON RETRY ---
-        window.analyzeProgress = async () => {
-            const user = state.users[state.currentUserId];
-            const container = document.getElementById('ai-content');
-            openModal('ai-modal');
-            container.innerHTML = `
-                <div class="flex flex-col items-center py-10">
-                    <div class="loader mb-4"></div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Consultando a la IA...</p>
-                    <p class="text-[10px] text-slate-300 mt-2">Estamos analizando tus datos para darte el mejor consejo</p>
-                </div>`;
-
-            const prompt = `Actúa como un experto en nutrición y fitness. Analiza el progreso de ${user.name}. 
-            Altura: ${user.profile.height}cm. 
-            Registros de peso: ${JSON.stringify(user.logs)}. 
-            Meta deseada: ${user.goal ? JSON.stringify(user.goal) : 'No definida'}.
-            Responde en español con formato HTML limpio (usando <p>, <ul>, <li>, <strong>). 
-            Divide tu respuesta en: 1. Estado Actual, 2. Análisis de tendencia, 3. Recomendaciones personalizadas, 4. Mensaje motivador.`;
-
-            // Implementación de Exponential Backoff
-            const fetchWithRetry = async (url, options, retries = 5, backoff = 1000) => {
-                try {
-                    const response = await fetch(url, options);
-                    if (!response.ok) {
-                        if (retries > 0) {
-                            await new Promise(resolve => setTimeout(resolve, backoff));
-                            return fetchWithRetry(url, options, retries - 1, backoff * 2);
-                        }
-                        throw new Error(`HTTP Error ${response.status}`);
-                    }
-                    return response;
-                } catch (error) {
-                    if (retries > 0) {
-                        await new Promise(resolve => setTimeout(resolve, backoff));
-                        return fetchWithRetry(url, options, retries - 1, backoff * 2);
-                    }
-                    throw error;
-                }
-            };
-
-            try {
-                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
-                });
-
-                const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (!text) throw new Error("Respuesta de IA vacía");
-                container.innerHTML = text;
-
-            } catch (err) {
-                console.error("AI connection error:", err);
-                container.innerHTML = `
-                    <div class="bg-red-50 p-6 rounded-2xl border border-red-100 text-center">
-                        <i data-lucide="cloud-off" class="w-10 h-10 text-red-500 mx-auto mb-3"></i>
-                        <p class="text-red-700 font-bold mb-2">Error de conexión con la IA</p>
-                        <p class="text-red-500 text-sm mb-4">No se pudo contactar con el motor de inteligencia artificial después de varios intentos.</p>
-                        <div class="text-left bg-white p-3 rounded-lg text-[10px] font-mono text-slate-400 border border-red-50">
-                            Detalles: ${err.message}
-                        </div>
-                        <button onclick="analyzeProgress()" class="mt-4 text-xs font-bold text-indigo-600 underline">Reintentar ahora</button>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
-        };
 
         function getIMCStatus(imc) {
             if (imc < 18.5) return { text: 'Bajo peso', class: 'bg-blue-100 text-blue-600' };
@@ -537,27 +598,11 @@
             return { text: 'Obesidad', class: 'bg-red-100 text-red-600' };
         }
 
-        window.exportData = () => {
-            const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'pesif_backup.json';
-            a.click();
-        };
-
-        window.importData = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try {
-                    state = JSON.parse(ev.target.result);
-                    state.currentUserId = Object.keys(state.users)[0] || null;
-                    persist();
-                } catch(e) { alert("Archivo no válido"); }
-            };
-            reader.readAsText(file);
-        };
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('profile-dropdown');
+            const trigger = document.getElementById('profile-trigger');
+            if (dropdown && trigger && !trigger.contains(e.target) && !dropdown.contains(e.target)) hideDropdown();
+        });
 
         window.onload = () => {
             load();
